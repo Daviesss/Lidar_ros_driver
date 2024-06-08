@@ -1,5 +1,5 @@
 # Lidar_ros_driver
-Lidar hardware driver based on ROS 1 wrapper
+Lidar hardware driver based on YD-LIDAR X2 (ROS 1 wrapper)
 
 # YD-LIDAR SDK : 
 
