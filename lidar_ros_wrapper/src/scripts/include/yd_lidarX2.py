@@ -32,13 +32,16 @@ import rospy
 import ydlidar
 from sensor_msgs.msg import LaserScan
 import math, random
+# import rosservice library
+from std_srvs.srv import Empty,EmptyResponse
 
 # Implementation class
 class Ydlidar_ros_wrapper:
     def __init__(self):
         rospy.init_node('lidar_ros_wrapper', anonymous=True)
-        self.laser_pub = rospy.Publisher("/scan", LaserScan, queue_size=10)  # Publish to the topic named "/scan"
-        self.port = rospy.get_param('~port', "/dev/ttyUSB4")
+        self.laser_pub = rospy.Publisher("/Scan_data", LaserScan, queue_size=10)  # Publish to the topic named "/Scan_data"
+        self.stop_laser_scanner = rospy.Service("/stop_lidar",Empty,self.stop_lidar) # service to stop laser scanner
+        self.port = rospy.get_param('~port', "/dev/ttyUSB2")
         self.baud_rate = rospy.get_param('~baudrate', 115200)
         self.scan_frequency = rospy.get_param('~scan_frequency', 10.0)
         self.sample_rate = rospy.get_param('~sampleRate', 9)
@@ -58,6 +61,14 @@ class Ydlidar_ros_wrapper:
         self.YDLIDAR.setlidaropt(ydlidar.LidarPropDeviceType, self.device_type)
 
         self.rate = rospy.Rate(10)  # 10 Hz
+    
+    
+    # rosservice to stop the lidar(laser scanner)...
+    def stop_lidar(self,request):
+        # rospy.loginfo("The lidar sensor has stopped.....")
+        self.YDLIDAR.turnOff()
+        rospy.loginfo("Laser scan has stopped.......")
+        return EmptyResponse()
 
 
 
@@ -105,6 +116,7 @@ class Ydlidar_ros_wrapper:
             if self.YDLIDAR.doProcessSimple(laser_scan_data):
             # self.rate.sleep()
             # self.YDLIDAR.turnOn()
+                # rospy.spin()
                 scan = LaserScan()
                 scan.header.stamp = rospy.Time.now()
                 scan.header.frame_id = "laser_frame"
@@ -118,7 +130,15 @@ class Ydlidar_ros_wrapper:
                 scan.ranges = ranges
                 scan.intensities = intensities
 
-                # Publish "/scan" topic to ROS
+                # Publish "/scan_data" topic to ROS
                 self.laser_pub.publish(scan)
             self.rate.sleep()
+            
+
+
+
+# Next task/functionality to add .......
+# A rosservice that calls shutdown and also start up laser scanner 
+            # self.YDLIDAR.turnOn() # Turn on lidar to scan...
+            # self.YDLIDAR.turnOff() # Turn off lidar from scanning 
 
