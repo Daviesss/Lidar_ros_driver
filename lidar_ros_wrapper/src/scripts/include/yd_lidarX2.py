@@ -49,7 +49,7 @@ class Ydlidar_ros_wrapper:
         self.max_range = rospy.get_param('~max_range', 12.0)
         self.lidar_type = rospy.get_param('~lidar_type', ydlidar.TYPE_TRIANGLE)
         self.device_type = rospy.get_param('~device_type', ydlidar.YDLIDAR_TYPE_SERIAL)
-        self.control = arm_controller.ArmController()
+        
         
 
         self.YDLIDAR = ydlidar.CYdLidar()  # Initialize the Lidar
