@@ -5,6 +5,8 @@
   and also implementation of the ROS 1 wrapper for YDLidarX2.
 
   Author: Davies Iyanuoluwa Ogunsina 
+  Email: Davisogunsina@gmail.com
+  Linkedlin: https://www.linkedin.com/in/davies-iyanuoluwa-ogunsina/
   
   MIT License
 
