@@ -41,7 +41,7 @@ class Ydlidar_ros_wrapper:
         rospy.init_node('lidar_ros_wrapper', anonymous=True)
         self.laser_pub = rospy.Publisher("/Scan_data", LaserScan, queue_size=10)  # Publish to the topic named "/Scan_data"
         self.stop_laser_scanner = rospy.Service("/stop_lidar",Empty,self.stop_lidar) # service to stop laser scanner
-        self.port = rospy.get_param('~port', "/dev/ttyUSB2")
+        self.port = rospy.get_param('~port', "/dev/ttyUSB1")
         self.baud_rate = rospy.get_param('~baudrate', 115200)
         self.scan_frequency = rospy.get_param('~scan_frequency', 10.0)
         self.sample_rate = rospy.get_param('~sampleRate', 9)
@@ -49,6 +49,8 @@ class Ydlidar_ros_wrapper:
         self.max_range = rospy.get_param('~max_range', 12.0)
         self.lidar_type = rospy.get_param('~lidar_type', ydlidar.TYPE_TRIANGLE)
         self.device_type = rospy.get_param('~device_type', ydlidar.YDLIDAR_TYPE_SERIAL)
+        self.control = arm_controller.ArmController()
+        
 
         self.YDLIDAR = ydlidar.CYdLidar()  # Initialize the Lidar
         self.YDLIDAR.setlidaropt(ydlidar.LidarPropSerialPort, self.port)  # initialize the port
@@ -65,9 +67,15 @@ class Ydlidar_ros_wrapper:
     
     # rosservice to stop the lidar(laser scanner)...
     def stop_lidar(self,request):
-        # rospy.loginfo("The lidar sensor has stopped.....")
-        self.YDLIDAR.turnOff()
-        rospy.loginfo("Laser scan has stopped.......")
+        self.start_key  = "k"
+        if input("Enter the main password to stop the lidar..") == self.start_key:
+            rospy.logwarn("Password to stop laser scanner correct, laser scanner stopping now.....")
+            self.YDLIDAR.turnOff()
+        
+        else: 
+            rospy.logwarn("The laser scanner is still running....")    
+            self.YDLIDAR.turnOn()
+        # rospy.loginfo("Laser scan has stopped.......")
         return EmptyResponse()
 
 
@@ -84,6 +92,7 @@ class Ydlidar_ros_wrapper:
     
     
     
+    # Get the data of ranges, intensities and angles.
     def get_lidar_data(self):
         # Placeholder for LiDAR data retrieval
         num_measurements = 360  # My laser rotates in an angle of 360 degrees...
@@ -114,9 +123,6 @@ class Ydlidar_ros_wrapper:
             ranges, intensities, angles = self.get_lidar_data()
             laser_scan_data = ydlidar.LaserScan()  # get data from the laser scanner
             if self.YDLIDAR.doProcessSimple(laser_scan_data):
-            # self.rate.sleep()
-            # self.YDLIDAR.turnOn()
-                # rospy.spin()
                 scan = LaserScan()
                 scan.header.stamp = rospy.Time.now()
                 scan.header.frame_id = "laser_frame"
@@ -134,11 +140,3 @@ class Ydlidar_ros_wrapper:
                 self.laser_pub.publish(scan)
             self.rate.sleep()
             
-
-
-
-# Next task/functionality to add .......
-# A rosservice that calls shutdown and also start up laser scanner 
-            # self.YDLIDAR.turnOn() # Turn on lidar to scan...
-            # self.YDLIDAR.turnOff() # Turn off lidar from scanning 
-
