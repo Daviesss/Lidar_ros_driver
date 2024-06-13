@@ -43,7 +43,7 @@ class Ydlidar_ros_wrapper:
         rospy.init_node('lidar_ros_wrapper', anonymous=True)
         self.laser_pub = rospy.Publisher("/Scan_data", LaserScan, queue_size=10)  # Publish to the topic named "/Scan_data"
         self.stop_laser_scanner = rospy.Service("/stop_lidar",Empty,self.stop_lidar) # service to stop laser scanner
-        self.port = rospy.get_param('~port', "/dev/ttyUSB1")
+        self.port = rospy.get_param('~port', "/dev/ttyUSB0")
         self.baud_rate = rospy.get_param('~baudrate', 115200)
         self.scan_frequency = rospy.get_param('~scan_frequency', 10.0)
         self.sample_rate = rospy.get_param('~sampleRate', 9)
@@ -69,12 +69,16 @@ class Ydlidar_ros_wrapper:
     
     # rosservice to stop the lidar(laser scanner)...
     def stop_lidar(self,request):
-        self.start_key  = "k"
-        if input("Enter the main password to stop the lidar..") == self.start_key:
+        self.stop_key  = "k"
+        self.start_key = "l"
+        if input("Enter the main password to stop the lidar..") == self.stop_key:
             rospy.logwarn("Password to stop laser scanner correct, laser scanner stopping now.....")
             self.YDLIDAR.turnOff()
+            if input("Enter the main password to start the lidar..") == self.start_key:
+                rospy.logwarn("Password to stop laser scanner correct, laser scanner stopping now.....")
+                self.YDLIDAR.turnOn()
         
-        else: 
+        else:  
             rospy.logwarn("The laser scanner is still running....")    
             self.YDLIDAR.turnOn()
         # rospy.loginfo("Laser scan has stopped.......")
@@ -138,7 +142,7 @@ class Ydlidar_ros_wrapper:
                 scan.ranges = ranges
                 scan.intensities = intensities
 
-                # Publish "/scan_data" topic to ROS
+                # Publish "/Scan_data" topic to ROS
                 self.laser_pub.publish(scan)
             self.rate.sleep()
             
